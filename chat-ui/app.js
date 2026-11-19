@@ -131,6 +131,10 @@ function renderReviewCard(item) {
 }
 
 async function submitReview(itemId, decision, textarea, error, article, actions) {
+  if (senderPicker.value !== "foreman") {
+    error.textContent = "Only the foreman can submit a review decision.";
+    return;
+  }
   const reason = textarea.value.trim();
   if (!reason) {
     error.textContent = "Enter a reason before approving or rejecting.";
