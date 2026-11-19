@@ -19,8 +19,9 @@ API docs: http://127.0.0.1:8000/docs. No Node build step is required.
 
 Both pages call the backend directly. Each owns its `config.js`; set
 `window.CHITMIRROR_API_BASE` to switch its backend URL (empty means same origin).
-The backend currently exposes only `/health`; business API shapes and stubs
-remain T01 and T03 work. Separate origins require backend CORS configuration.
+The backend currently exposes only `/health`; the shared API contract and
+examples are in `contracts/`, and implementation of the stub remains T03 work.
+Separate origins require backend CORS configuration.
 
 ## Team folders
 

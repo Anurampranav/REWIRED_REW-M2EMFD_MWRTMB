@@ -1,0 +1,18 @@
+{
+  "message_request": [{"sender": "member-7", "text": "", "image": "<binary image part>"}],
+  "message_response": [{"bubbles": [
+    {"type": "text", "text": "Payment received for checking."},
+    {"type": "result_card", "status": "verified", "amount_paise": 445007, "utr": "123456789012", "reason": "Matched bank credit."},
+    {"type": "result_card", "status": "duplicate", "amount_paise": 445007, "utr": "123456789012", "reason": "UTR already used."},
+    {"type": "result_card", "status": "wrong_amount", "amount_paise": 445000, "utr": "123456789013", "reason": "Expected 445007 paise."},
+    {"type": "result_card", "status": "needs_review", "amount_paise": 445007, "utr": null, "reason": "UTR not found in bank CSV."},
+    {"type": "review_request", "item_id": "review-1", "reason": "Readers disagree."},
+    {"type": "reminder", "text": "Your payment is due."}
+  ]}],
+  "review_request": [{"item_id": "review-1", "decision": "approve", "reason": "Bank entry checked manually", "actor": "foreman"}],
+  "review_response": [{"item_id": "review-1", "decision": "approve"}],
+  "state_response": [{"members": [{"id": "member-7", "name": "Ravi"}], "months": [3], "ledger": [{"member_id": "member-7", "month": 3, "status": "verified", "amount_paise": 445007, "utr": "123456789012"}], "counters": {"collected_paise": 445007, "paid": 1, "total_members": 20, "needs_review": 1, "overdue": 0}, "flags": [{"item_id": "review-1", "member_id": "member-8", "month": 3, "reason": "Readers disagree"}], "overdue": [], "audit_log": [{"id": "audit-1", "actor": "foreman", "action": "settle", "reason": "Month 3", "timestamp": "2026-11-19T10:00:00Z"}], "statement": [{"month": 3, "instalment_paise": 445007, "dividend_paise": 55000, "late_fee_paise": 0, "prize_paise": 0, "status": "verified"}], "private_bubbles": [{"type": "reminder", "text": "Your payment is due."}]}],
+  "reminders_request": [{"actor": "foreman"}], "reminders_response": [{"sent": 2}],
+  "demo_load_request": [{"actor": "foreman"}], "demo_load_response": [{"loaded": true}],
+  "error_response": [{"error": {"code": "invalid_request", "message": "Reason is required."}}]
+}
