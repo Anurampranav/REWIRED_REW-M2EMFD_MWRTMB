@@ -52,6 +52,13 @@ enforce member access; demo sender selectors are not authentication. Existing
 databases with duplicate payment postings must be reconciled before initializing
 the new uniqueness indexes; no history is silently removed.
 
+`backend.review.review_payment` records a foreman approve/reject decision on a
+`needs_review` payment, using its payment ID as the demo review-item ID. An
+approval is recorded as `manual_approved`, not bank-verified: it does not post
+a verified payment or unlock payout. The review reason is captured in the audit
+log. Review API routing and authentication are separate work; the `foreman`
+actor string is a demo selector, not proof of identity.
+
 ## Tests
 
 ```powershell
