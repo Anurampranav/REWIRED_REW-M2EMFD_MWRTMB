@@ -29,6 +29,22 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
     amount_paise INTEGER NOT NULL CHECK(amount_paise >= 0),
     kind TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS settlements (
+    month INTEGER PRIMARY KEY REFERENCES months(month),
+    winner_id TEXT NOT NULL REFERENCES members(id),
+    discount_paise INTEGER NOT NULL CHECK(discount_paise >= 0),
+    prize_paise INTEGER NOT NULL CHECK(prize_paise >= 0),
+    commission_paise INTEGER NOT NULL CHECK(commission_paise >= 0),
+    tag_total_paise INTEGER NOT NULL CHECK(tag_total_paise >= 0)
+);
+CREATE TABLE IF NOT EXISTS settlement_dues (
+    month INTEGER NOT NULL REFERENCES settlements(month),
+    member_id TEXT NOT NULL REFERENCES members(id),
+    base_due_paise INTEGER NOT NULL CHECK(base_due_paise >= 0),
+    tag_paise INTEGER NOT NULL CHECK(tag_paise BETWEEN 1 AND 99),
+    dividend_paise INTEGER NOT NULL CHECK(dividend_paise >= 0),
+    PRIMARY KEY(month, member_id)
+);
 CREATE TABLE IF NOT EXISTS audit_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     actor TEXT NOT NULL CHECK(length(trim(actor)) > 0),
@@ -43,6 +59,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS ledger_one_posting_per_payment
 ON ledger_entries(payment_id) WHERE kind = 'payment' AND payment_id IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS ledger_one_late_fee_per_payment
 ON ledger_entries(payment_id) WHERE kind = 'late_fee' AND payment_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS ledger_one_prize_per_month
+ON ledger_entries(month) WHERE kind = 'prize';
+CREATE UNIQUE INDEX IF NOT EXISTS ledger_one_dividend_per_member_month
+ON ledger_entries(member_id, month) WHERE kind = 'dividend';
 CREATE TRIGGER IF NOT EXISTS audit_no_update BEFORE UPDATE ON audit_log
 BEGIN SELECT RAISE(ABORT, 'audit log is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS audit_no_delete BEFORE DELETE ON audit_log
@@ -57,6 +77,20 @@ BEGIN SELECT RAISE(ABORT, 'ledger is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS ledger_no_replace BEFORE INSERT ON ledger_entries
 WHEN EXISTS (SELECT 1 FROM ledger_entries WHERE id = NEW.id)
 BEGIN SELECT RAISE(ABORT, 'ledger is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS settlement_no_update BEFORE UPDATE ON settlements
+BEGIN SELECT RAISE(ABORT, 'settlement is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS settlement_no_delete BEFORE DELETE ON settlements
+BEGIN SELECT RAISE(ABORT, 'settlement is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS settlement_no_replace BEFORE INSERT ON settlements
+WHEN EXISTS (SELECT 1 FROM settlements WHERE month = NEW.month)
+BEGIN SELECT RAISE(ABORT, 'settlement is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS settlement_due_no_update BEFORE UPDATE ON settlement_dues
+BEGIN SELECT RAISE(ABORT, 'settlement due is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS settlement_due_no_delete BEFORE DELETE ON settlement_dues
+BEGIN SELECT RAISE(ABORT, 'settlement due is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS settlement_due_no_replace BEFORE INSERT ON settlement_dues
+WHEN EXISTS (SELECT 1 FROM settlement_dues WHERE month = NEW.month AND member_id = NEW.member_id)
+BEGIN SELECT RAISE(ABORT, 'settlement due is immutable'); END;
 """
 
 
@@ -70,7 +104,7 @@ def connect(path):
     db.create_function("audit_actor", 0, lambda: context["actor"])
     db.create_function("audit_reason", 0, lambda: context["reason"])
     db.executescript(SCHEMA)
-    for table, key in (("members", "id"), ("months", "month"), ("payments", "id"), ("ledger_entries", "id")):
+    for table, key in (("members", "id"), ("months", "month"), ("payments", "id"), ("ledger_entries", "id"), ("settlements", "month"), ("settlement_dues", "member_id")):
         for operation in ("INSERT", "UPDATE", "DELETE"):
             row = "OLD" if operation == "DELETE" else "NEW"
             db.execute(f"""

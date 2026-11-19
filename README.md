@@ -69,6 +69,20 @@ reason. The service trusts its caller to provide genuine bank evidence and does
 not itself validate the bank CSV. A fee recorded after payment is a separate
 ledger charge; collection and reconciliation of that charge remain future work.
 
+`backend.payout` registers an immutable monthly settlement from the engine,
+then records demo prize and dividend ledger entries only when every snapshotted
+member has an exactly matching posted payment marked `verified`. Manual review
+approval does not qualify. Duplicate calls do not add credits, and there is no
+real transfer. Until fee collection and reconciliation exist, any nonzero late
+fee blocks payout. The foreman selector and caller-supplied configuration are
+demo inputs, not authenticated authorization; callers must ensure trusted group
+settings and verified bank evidence. Existing duplicate prize/dividend ledger
+entries must be reconciled before the database's new unique indexes can be
+created. The extra tag amounts are tracked separately in the settlement;
+their ultimate disposition remains an open product decision. Dividend ledger
+entries record the allocation already deducted from the instalment; they are
+not an additional cash payout or another deduction from the amount due.
+
 ## Tests
 
 ```powershell
