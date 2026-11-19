@@ -36,6 +36,8 @@ def claim(**changes):
 
 
 def report(payment_claim, **changes):
+    changes.setdefault("used_utrs", ())
+    changes.setdefault("image_hash_registry", InMemoryImageHashRegistry())
     return validate_payment_claim(
         payment_claim,
         expected_amount_paise=500000,
@@ -102,6 +104,40 @@ def test_untagged_bank_amount_is_not_accepted_as_independent_evidence():
     untagged_evidence[original.utr] = replace(original, amount_tag="")
     result = validate_payment_claim(claim(), expected_amount_paise=500000, expected_receiver_upi_id=GROUP["group_upi_id"], evidence_by_utr=untagged_evidence)
     assert codes(result)["bank_evidence"] == "bank_missing_amount_tag"
+
+
+def test_missing_duplicate_check_sources_fail_closed():
+    result = validate_payment_claim(claim(), expected_amount_paise=500000,
+                                    expected_receiver_upi_id=GROUP["group_upi_id"], evidence_by_utr=EVIDENCE)
+    assert not result.passed
+    assert codes(result)["utr_uniqueness"] == "cannot_check_utr_uniqueness"
+    assert codes(result)["image_uniqueness"] == "cannot_check_image_uniqueness"
+
+
+def test_evidence_mapping_cannot_substitute_a_different_utr():
+    evidence = dict(EVIDENCE)
+    evidence["845270310001"] = replace(evidence["845270310001"], utr="123456789012")
+    result = validate_payment_claim(claim(), expected_amount_paise=500000,
+                                    expected_receiver_upi_id=GROUP["group_upi_id"], evidence_by_utr=evidence,
+                                    used_utrs=(), image_hash_registry=InMemoryImageHashRegistry())
+    assert codes(result)["bank_evidence"] == "bank_reference_conflict"
+    assert not result.passed
+
+
+@pytest.mark.parametrize("bad_utr", [123456789012, "１２３４５６７８９０１２"])
+def test_non_string_and_non_ascii_utr_fail_closed(bad_utr):
+    result = report(claim(utr=bad_utr))
+    assert codes(result)["utr_format"] == "invalid_utr"
+    assert not result.passed
+
+
+def test_boolean_amounts_and_non_string_hash_fail_closed():
+    result = report(claim(amount_paise=True, image_sha256=123))
+    assert codes(result)["expected_amount"] == "missing_or_invalid_amount"
+    assert codes(result)["image_uniqueness"] == "invalid_image_hash"
+    with pytest.raises(ValueError):
+        validate_payment_claim(claim(), expected_amount_paise=True,
+                               expected_receiver_upi_id=GROUP["group_upi_id"], evidence_by_utr=EVIDENCE)
 
 
 def test_t06_planted_scenarios_produce_their_expected_deterministic_checks():
