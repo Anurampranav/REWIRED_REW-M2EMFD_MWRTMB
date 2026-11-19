@@ -19,9 +19,20 @@ API docs: http://127.0.0.1:8000/docs. No Node build step is required.
 
 Both pages call the backend directly. Each owns its `config.js`; set
 `window.CHITMIRROR_API_BASE` to switch its backend URL (empty means same origin).
-The backend currently exposes only `/health`; the shared API contract and
-examples are in `contracts/`, and implementation of the stub remains T03 work.
+The backend exposes `/health`, `/state`, and `/reminders/send`; other business
+endpoints remain separate work. The shared API contract is in `contracts/`.
 Separate origins require backend CORS configuration.
+
+The backend stores private demo reminder bubbles in SQLite (`data/chitmirror.db`
+by default; set `CHITMIRROR_DATABASE` to override). While the server is running,
+it checks once per minute in India time for payments due in two days, due today,
+or overdue. The foreman `POST /reminders/send` trigger sends overdue reminders.
+A recipient gets at most one reminder per month, stage and day; a verified and
+posted payment is skipped. After the server is offline, only the currently
+applicable stage is sent when it starts again; missed stages aren't replayed.
+These are app bubbles, not real WhatsApp messages. `/state?role=member&member_id=...`
+returns only the selected member's private bubbles; the demo selector is not
+authentication, so this is not a security boundary against impersonation.
 
 ## Team folders
 

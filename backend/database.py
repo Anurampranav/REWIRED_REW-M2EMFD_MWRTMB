@@ -45,6 +45,15 @@ CREATE TABLE IF NOT EXISTS settlement_dues (
     dividend_paise INTEGER NOT NULL CHECK(dividend_paise >= 0),
     PRIMARY KEY(month, member_id)
 );
+CREATE TABLE IF NOT EXISTS reminders (
+    id TEXT PRIMARY KEY,
+    member_id TEXT NOT NULL REFERENCES members(id),
+    month INTEGER NOT NULL REFERENCES months(month),
+    phase TEXT NOT NULL CHECK(phase IN ('before', 'due', 'overdue')),
+    send_date TEXT NOT NULL,
+    text TEXT NOT NULL,
+    UNIQUE(member_id, month, phase, send_date)
+);
 CREATE TABLE IF NOT EXISTS audit_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     actor TEXT NOT NULL CHECK(length(trim(actor)) > 0),
@@ -91,6 +100,14 @@ BEGIN SELECT RAISE(ABORT, 'settlement due is immutable'); END;
 CREATE TRIGGER IF NOT EXISTS settlement_due_no_replace BEFORE INSERT ON settlement_dues
 WHEN EXISTS (SELECT 1 FROM settlement_dues WHERE month = NEW.month AND member_id = NEW.member_id)
 BEGIN SELECT RAISE(ABORT, 'settlement due is immutable'); END;
+CREATE TRIGGER IF NOT EXISTS reminder_no_update BEFORE UPDATE ON reminders
+BEGIN SELECT RAISE(ABORT, 'reminders are append-only'); END;
+CREATE TRIGGER IF NOT EXISTS reminder_no_delete BEFORE DELETE ON reminders
+BEGIN SELECT RAISE(ABORT, 'reminders are append-only'); END;
+CREATE TRIGGER IF NOT EXISTS reminder_no_replace BEFORE INSERT ON reminders
+WHEN EXISTS (SELECT 1 FROM reminders WHERE id = NEW.id OR
+             (member_id = NEW.member_id AND month = NEW.month AND phase = NEW.phase AND send_date = NEW.send_date))
+BEGIN SELECT RAISE(ABORT, 'reminders are append-only'); END;
 """
 
 
@@ -104,7 +121,7 @@ def connect(path):
     db.create_function("audit_actor", 0, lambda: context["actor"])
     db.create_function("audit_reason", 0, lambda: context["reason"])
     db.executescript(SCHEMA)
-    for table, key in (("members", "id"), ("months", "month"), ("payments", "id"), ("ledger_entries", "id"), ("settlements", "month"), ("settlement_dues", "member_id")):
+    for table, key in (("members", "id"), ("months", "month"), ("payments", "id"), ("ledger_entries", "id"), ("settlements", "month"), ("settlement_dues", "member_id"), ("reminders", "id")):
         for operation in ("INSERT", "UPDATE", "DELETE"):
             row = "OLD" if operation == "DELETE" else "NEW"
             db.execute(f"""
