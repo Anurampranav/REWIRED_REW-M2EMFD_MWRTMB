@@ -77,7 +77,7 @@ def test_review_reasons_are_required_and_payloads_match_contract(page, base_url)
     first.get_by_test_id("review-reason-" + first_id).fill("Matched bank record.")
     first.get_by_test_id("review-approve-" + first_id).click()
     expect(first).to_have_count(0)
-    expect.poll(lambda: len(review_calls)).to_be(1)
+    assert len(review_calls) == 1
     assert review_calls[0] == {
         "item_id": first_id,
         "decision": "approve",
@@ -93,7 +93,7 @@ def test_review_reasons_are_required_and_payloads_match_contract(page, base_url)
     second.get_by_test_id("review-reason-" + second_id).fill("Evidence does not match.")
     second.get_by_test_id("review-reject-" + second_id).click()
     expect(second).to_have_count(0)
-    expect.poll(lambda: len(review_calls)).to_be(2)
+    assert len(review_calls) == 2
     assert review_calls[1] == {
         "item_id": second_id,
         "decision": "reject",
