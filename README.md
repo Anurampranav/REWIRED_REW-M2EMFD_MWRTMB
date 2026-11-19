@@ -32,9 +32,15 @@ Separate origins require backend CORS configuration.
 | C | `chat-ui/`: independent chat page; demo script and pitch |
 | D | `dashboard/` and `data/`: independent dashboard, fixtures and scenario |
 
-The existing `chit_engine.py` and `chitmirror_final.mermaid` were not present in
-the empty repository. Their owner should supply the originals; do not recreate
-the completed engine or diagram. Integration belongs to T09.
+The original engine and diagram were not present in the repository. A replacement
+pure settlement engine is provided in `backend/chit_engine.py`; the diagram is
+still missing. Amounts are integer paise. The engine rejects fractional-paise
+commission, instalments or dividends rather than silently rounding. Tags are
+additional reconciliation amounts and their sum is reported separately; how
+to account for or return tag surplus is an open product decision. No dividend
+or payout is posted by settlement. If prized members are excluded, the caller
+must supply prior winners; the current winner is also excluded. This policy and
+the maximum discount require confirmation against the chit agreement.
 
 ## Tests
 
