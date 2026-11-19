@@ -37,6 +37,10 @@ CREATE TABLE IF NOT EXISTS audit_log (
     timestamp TEXT NOT NULL,
     entity_id TEXT NOT NULL
 );
+CREATE UNIQUE INDEX IF NOT EXISTS ledger_one_payment_per_month
+ON ledger_entries(member_id, month) WHERE kind = 'payment';
+CREATE UNIQUE INDEX IF NOT EXISTS ledger_one_posting_per_payment
+ON ledger_entries(payment_id) WHERE kind = 'payment' AND payment_id IS NOT NULL;
 CREATE TRIGGER IF NOT EXISTS audit_no_update BEFORE UPDATE ON audit_log
 BEGIN SELECT RAISE(ABORT, 'audit log is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS audit_no_delete BEFORE DELETE ON audit_log

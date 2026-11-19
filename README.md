@@ -42,6 +42,16 @@ or payout is posted by settlement. If prized members are excluded, the caller
 must supply prior winners; the current winner is also excluded. This policy and
 the maximum discount require confirmation against the chit agreement.
 
+`backend.ledger` posts a payment only after another service has independently
+verified it and stored its status as `verified`; it does not verify evidence.
+Statements read recorded ledger entries for one member. `instalment_paise` is
+the actual posted payment including its paise tag (and any fee included in that
+payment); dividend, fee and prize fields show separately recorded entries, not
+automatic credits. Months without ledger entries are omitted. The caller must
+enforce member access; demo sender selectors are not authentication. Existing
+databases with duplicate payment postings must be reconciled before initializing
+the new uniqueness indexes; no history is silently removed.
+
 ## Tests
 
 ```powershell
