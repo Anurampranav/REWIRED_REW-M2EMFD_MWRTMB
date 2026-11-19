@@ -1,0 +1,6 @@
+:root { font-family: system-ui, sans-serif; color: #18332d; background: #edf3ef; }
+body { margin: 0; padding: 24px; }
+main { max-width: 420px; min-height: 75vh; margin: auto; background: white; border: 1px solid #ccd9d1; border-radius: 20px; overflow: hidden; }
+header { background: #145c4b; color: white; padding: 20px; }
+h1 { margin: 0; font-size: 1.5rem; }
+section, #connection { margin: 20px; }
