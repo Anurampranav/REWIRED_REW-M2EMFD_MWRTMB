@@ -1,0 +1,40 @@
+{
+  "fixture_version": 1,
+  "synthetic": true,
+  "amount_unit": "integer paise",
+  "scenarios": [
+    {
+      "id": "genuine_on_time",
+      "screenshot_fixture_id": "receipt-genuine-on-time",
+      "claim": {"sender":"member-01","member_id":"member-01","utr":"845270310001","amount_paise":500000,"transaction_date":"2026-11-04","receiver_upi_id":"saanvi-circle@demo.invalid"},
+      "expected_result": {"bubble":{"type":"result_card","status":"verified","amount_paise":500000,"utr":"845270310001","reason":"Matched independent bank evidence."},"ledger":{"recorded":true,"timing":"on_time"}}
+    },
+    {
+      "id": "reused_utr",
+      "screenshot_fixture_id": "receipt-reused-utr",
+      "claim": {"sender":"member-02","member_id":"member-02","utr":"845270310002","amount_paise":500000,"transaction_date":"2026-11-04","receiver_upi_id":"saanvi-circle@demo.invalid"},
+      "precondition": "The same UTR is already recorded once for member-02.",
+      "expected_result": {"bubble":{"type":"result_card","status":"duplicate","amount_paise":500000,"utr":"845270310002","reason":"UTR already used in the group ledger."},"ledger":{"recorded":false,"timing":"on_time"}}
+    },
+    {
+      "id": "fake_utr_not_in_csv",
+      "screenshot_fixture_id": "receipt-fake-utr",
+      "claim": {"sender":"member-06","member_id":"member-06","utr":"845270319999","amount_paise":500000,"transaction_date":"2026-11-04","receiver_upi_id":"saanvi-circle@demo.invalid"},
+      "expected_result": {"bubble":{"type":"result_card","status":"needs_review","amount_paise":500000,"utr":null,"reason":"UTR not found in bank CSV."},"ledger":{"recorded":false,"timing":"unknown"}}
+    },
+    {
+      "id": "wrong_amount",
+      "screenshot_fixture_id": "receipt-wrong-amount",
+      "claim": {"sender":"member-08","member_id":"member-08","utr":"845270310008","amount_paise":450000,"transaction_date":"2026-11-04","receiver_upi_id":"saanvi-circle@demo.invalid"},
+      "expected_result": {"bubble":{"type":"result_card","status":"wrong_amount","amount_paise":450000,"utr":"845270310008","reason":"Expected 500000 paise from independent bank evidence."},"ledger":{"recorded":false,"timing":"on_time"}}
+    },
+    {
+      "id": "late_payer",
+      "screenshot_fixture_id": "receipt-late-payer",
+      "claim": {"sender":"member-20","member_id":"member-20","utr":"845270310020","amount_paise":500000,"transaction_date":"2026-11-08","receiver_upi_id":"saanvi-circle@demo.invalid"},
+      "expected_result": {"bubble":{"type":"result_card","status":"verified","amount_paise":500000,"utr":"845270310020","reason":"Matched bank evidence; transaction arrived after the 2026-11-05 due date."},"ledger":{"recorded":true,"status":"overdue","timing":"late","late_fee_paise":null}}
+    }
+  ],
+  "note": "Scenario claims are synthetic fixtures, not attached real screenshots. The late case is bank-matched and recorded as verified with a late flag; no late-fee rule is configured."
+}
+

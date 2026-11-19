@@ -50,9 +50,15 @@ def test_review_and_controls():
 
 
 def test_state_contract_and_private_filtering():
-    for query in ["role=foreman", "role=member&member_id=member-7", "role=member&member_id=member-8"]:
+    for query in ["role=foreman", "role=member&member_id=member-07", "role=member&member_id=member-08"]:
         response = client.get("/state?" + query)
         assert response.status_code == 200
         validator_for("state_response").validate(response.json())
-    member = client.get("/state?role=member&member_id=member-8").json()
-    assert not any(member[key] for key in ("flags", "audit_log", "statement", "private_bubbles"))
+    foreman = client.get("/state?role=foreman").json()
+    assert len(foreman["members"]) == 20
+    assert foreman["months"] == [1, 2, 3, 4]
+    assert len(foreman["ledger"]) == 80
+    member = client.get("/state?role=member&member_id=member-08").json()
+    assert not any(member[key] for key in ("flags", "audit_log", "private_bubbles"))
+    assert len(member["statement"]) == 4
+    assert client.get("/state?role=member&member_id=unknown").status_code == 422

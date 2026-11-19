@@ -1,6 +1,7 @@
 """Disposable canned API for frontend development; never verifies payments."""
 
 import copy
+import csv
 import json
 import os
 from pathlib import Path
@@ -9,11 +10,15 @@ from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 app = FastAPI(title="ChitMirror stub")
 app.add_middleware(CORSMiddleware, allow_origins=os.environ.get("CHITMIRROR_ALLOWED_ORIGINS", "http://127.0.0.1:8000,http://localhost:8000").split(","), allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
-EXAMPLES = json.loads((Path(__file__).resolve().parent.parent / "contracts" / "examples.json").read_text(encoding="utf-8"))
+FIXTURES = Path(__file__).resolve().parent.parent / "data" / "fixtures"
+EXAMPLES = json.loads((FIXTURES / "result_examples.json").read_text(encoding="utf-8"))
+FOREMAN_STATE = json.loads((FIXTURES / "state_foreman.json").read_text(encoding="utf-8"))
+with (FIXTURES / "financial_schedule.csv").open(encoding="utf-8", newline="") as file:
+    SCHEDULE = {int(row["month"]): row for row in csv.DictReader(file)}
 
 
 def error(code, message, status):
@@ -26,6 +31,7 @@ async def validation_error(request: Request, exc: RequestValidationError):
 
 
 class Actor(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     actor: str = Field(min_length=1)
 
 
@@ -70,11 +76,19 @@ def review(payload: Review):
 def state(role: str, member_id: str | None = None):
     if role not in {"foreman", "member"} or (role == "member" and not member_id):
         return error("invalid_request", "Valid role and member ID are required.", 422)
-    result = copy.deepcopy(EXAMPLES["state_response"][0])
+    result = copy.deepcopy(FOREMAN_STATE)
     if role == "member":
-        result.update(flags=[], overdue=[], audit_log=[])
-        if member_id != "member-7":
-            result.update(statement=[], private_bubbles=[])
+        if member_id not in {member["id"] for member in result["members"]}:
+            return error("invalid_request", "Member not found.", 422)
+        result.update(flags=[], overdue=[], audit_log=[], private_bubbles=[])
+        result["statement"] = [
+            {"month": entry["month"], "instalment_paise": entry["amount_paise"],
+             "dividend_paise": int(SCHEDULE[entry["month"]]["dividend_per_member_paise"]),
+             "late_fee_paise": 0,
+             "prize_paise": int(SCHEDULE[entry["month"]]["prize_paise"]) if SCHEDULE[entry["month"]]["winner_member_id"] == member_id else 0,
+             "status": entry["status"]}
+            for entry in result["ledger"] if entry["member_id"] == member_id
+        ]
     else:
         result.update(statement=[], private_bubbles=[])
     return result
