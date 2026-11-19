@@ -44,8 +44,9 @@ authentication, so this is not a security boundary against impersonation.
 | D | `dashboard/` and `data/`: independent dashboard, fixtures and scenario |
 
 The original engine and diagram were not present in the repository. A replacement
-pure settlement engine is provided in `backend/chit_engine.py`; the diagram is
-still missing. Amounts are integer paise. The engine rejects fractional-paise
+pure settlement engine is provided in `backend/chit_engine.py`, and
+`chitmirror_final.mermaid` documents the target architecture (some integrations
+remain under development). Amounts are integer paise. The engine rejects fractional-paise
 commission, instalments or dividends rather than silently rounding. Tags are
 additional reconciliation amounts and their sum is reported separately; how
 to account for or return tag surplus is an open product decision. No dividend
