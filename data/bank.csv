@@ -1,0 +1,22 @@
+utr,transaction_date,amount_paise,amount_tag,receiver_upi_id,receiver_name,payer_member_id,payer_member_name,bank_status,scenario_tag
+845270310001,2026-11-04,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-01,Ravi Kumar,SETTLED,genuine_on_time
+845270310002,2026-11-04,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-02,Sita Menon,SETTLED,reused_utr_source
+845270310003,2026-11-05,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-03,Arun Prasad,SETTLED,
+845270310004,2026-11-02,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-04,Meena Shah,SETTLED,
+845270310005,2026-11-03,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-05,Karthik Rao,SETTLED,
+845270310006,2026-11-05,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-06,Neha Iyer,SETTLED,
+845270310007,2026-11-04,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-07,Dev Patel,SETTLED,
+845270310008,2026-11-04,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-08,Tara Bose,SETTLED,wrong_amount_source
+845270310009,2026-11-03,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-09,Aditya Nair,SETTLED,
+845270310010,2026-11-04,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-10,Myra Das,SETTLED,
+845270310011,2026-11-05,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-11,Ishaan Shah,SETTLED,
+845270310012,2026-11-03,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-12,Anaya Rao,SETTLED,
+845270310013,2026-11-04,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-13,Vihaan Sen,SETTLED,
+845270310014,2026-11-05,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-14,Meena Sinha,SETTLED,
+845270310015,2026-11-02,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-15,Kabir Joshi,SETTLED,
+845270310016,2026-11-03,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-16,Diya Kapoor,SETTLED,
+845270310017,2026-11-04,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-17,Aarav Mehta,SETTLED,
+845270310018,2026-11-05,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-18,Isha Patel,SETTLED,
+845270310019,2026-11-04,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-19,Neel Gupta,SETTLED,
+845270310020,2026-11-08,500000,monthly_instalment,saanvi-circle@demo.invalid,Saanvi Circle,member-20,Pari Nair,SETTLED,late_payer
+
