@@ -45,7 +45,9 @@ def member_statement(db: sqlite3.Connection, member_id: str) -> list[dict]:
             SUM(CASE WHEN kind = 'dividend' THEN amount_paise ELSE 0 END),
             SUM(CASE WHEN kind = 'late_fee' THEN amount_paise ELSE 0 END),
             SUM(CASE WHEN kind = 'prize' THEN amount_paise ELSE 0 END),
-            MAX(CASE WHEN kind = 'payment' THEN 1 ELSE 0 END)
+            MAX(CASE WHEN kind = 'payment' THEN 1 ELSE 0 END),
+            MAX(CASE WHEN kind = 'review_approve' THEN 1 ELSE 0 END),
+            MAX(CASE WHEN kind = 'review_reject' THEN 1 ELSE 0 END)
         FROM ledger_entries WHERE member_id = ? GROUP BY month ORDER BY month
         """,
         (member_id,),
@@ -53,6 +55,6 @@ def member_statement(db: sqlite3.Connection, member_id: str) -> list[dict]:
     return [
         {"month": month, "instalment_paise": instalment, "dividend_paise": dividend,
          "late_fee_paise": late_fee, "prize_paise": prize,
-         "status": "verified" if paid else "pending"}
-        for month, instalment, dividend, late_fee, prize, paid in rows
+         "status": "verified" if paid else "manual_approved" if approved else "rejected" if rejected else "pending"}
+        for month, instalment, dividend, late_fee, prize, paid, approved, rejected in rows
     ]
