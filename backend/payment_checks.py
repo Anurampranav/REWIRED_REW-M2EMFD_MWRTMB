@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Iterable, Protocol
 
 
-UTR_PATTERN = re.compile(r"^\d{12}$")
+UTR_PATTERN = re.compile(r"^[0-9]{12}$")
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -71,6 +71,8 @@ class ImageHashRegistry(Protocol):
 
     def contains(self, image_sha256: str) -> bool: ...
 
+    def record(self, image_sha256: str) -> None: ...
+
 
 class InMemoryImageHashRegistry:
     """Test/demo implementation. Recording is explicit, separate from checking."""
@@ -120,7 +122,7 @@ def validate_payment_claim(
     expected_amount_paise: int,
     expected_receiver_upi_id: str,
     evidence_by_utr: dict[str, BankEvidence],
-    used_utrs: Iterable[str] = (),
+    used_utrs: Iterable[str] | None = None,
     image_hash_registry: ImageHashRegistry | None = None,
 ) -> PaymentCheckReport:
     """Check claim data against expected values and independent evidence.
@@ -128,20 +130,21 @@ def validate_payment_claim(
     A fully passing report remains only a candidate for T15. The caller must not
     treat this report or OCR confidence as verification by itself.
     """
-    if not isinstance(expected_amount_paise, int) or expected_amount_paise < 0:
+    if type(expected_amount_paise) is not int or expected_amount_paise < 0:
         raise ValueError("expected_amount_paise must be a non-negative integer")
-    if not expected_receiver_upi_id.strip():
+    if not isinstance(expected_receiver_upi_id, str) or not expected_receiver_upi_id.strip():
         raise ValueError("expected_receiver_upi_id is required")
-    used = set(used_utrs)
+    used = set(used_utrs) if used_utrs is not None else None
+    valid_utr = isinstance(claim.utr, str) and UTR_PATTERN.fullmatch(claim.utr) is not None
     checks: list[CheckResult] = []
     if claim.utr is None:
         checks.append(CheckResult("utr_format", False, "missing_utr", "Transaction reference is missing from the screenshot claim."))
-    elif not UTR_PATTERN.fullmatch(claim.utr):
+    elif not valid_utr:
         checks.append(CheckResult("utr_format", False, "invalid_utr", "Transaction reference must contain exactly 12 digits."))
     else:
         checks.append(CheckResult("utr_format", True, "valid_utr", "Transaction reference has the required 12-digit format."))
 
-    if not isinstance(claim.amount_paise, int) or claim.amount_paise < 0:
+    if type(claim.amount_paise) is not int or claim.amount_paise < 0:
         checks.append(CheckResult("expected_amount", False, "missing_or_invalid_amount", "Payment amount is missing or invalid."))
     elif claim.amount_paise != expected_amount_paise:
         checks.append(CheckResult("expected_amount", False, "wrong_amount", f"Expected {expected_amount_paise} paise, received {claim.amount_paise} paise."))
@@ -155,9 +158,11 @@ def validate_payment_claim(
     else:
         checks.append(CheckResult("payee", True, "payee_matches", "Screenshot claim payee matches the group payee."))
 
-    evidence = evidence_by_utr.get(claim.utr) if claim.utr and UTR_PATTERN.fullmatch(claim.utr) else None
+    evidence = evidence_by_utr.get(claim.utr) if valid_utr else None
     if evidence is None:
         checks.append(CheckResult("bank_evidence", False, "utr_not_in_bank_csv", "No independent bank evidence matches this transaction reference."))
+    elif evidence.utr != claim.utr:
+        checks.append(CheckResult("bank_evidence", False, "bank_reference_conflict", "Independent bank evidence has a different transaction reference."))
     elif evidence.bank_status != "SETTLED":
         checks.append(CheckResult("bank_evidence", False, "bank_not_settled", "Independent bank evidence is not settled."))
     elif not evidence.amount_tag:
@@ -171,8 +176,8 @@ def validate_payment_claim(
     else:
         checks.append(CheckResult("bank_evidence", True, "evidence_matches", "Independent bank evidence matches the claim."))
 
-    if claim.utr is None or not UTR_PATTERN.fullmatch(claim.utr):
-        checks.append(CheckResult("utr_uniqueness", False, "cannot_check_utr_uniqueness", "UTR uniqueness cannot be checked without a valid transaction reference."))
+    if not valid_utr or used is None:
+        checks.append(CheckResult("utr_uniqueness", False, "cannot_check_utr_uniqueness", "UTR uniqueness requires a valid reference and an available used-UTR registry."))
     elif claim.utr in used:
         checks.append(CheckResult("utr_uniqueness", False, "duplicate_utr", "Transaction reference was already used in the group ledger."))
     else:
@@ -180,9 +185,11 @@ def validate_payment_claim(
 
     if claim.image_sha256 is None:
         checks.append(CheckResult("image_uniqueness", False, "missing_image_hash", "Image hash is unavailable, so screenshot reuse cannot be checked."))
-    elif not SHA256_PATTERN.fullmatch(claim.image_sha256):
+    elif not isinstance(claim.image_sha256, str) or not SHA256_PATTERN.fullmatch(claim.image_sha256):
         checks.append(CheckResult("image_uniqueness", False, "invalid_image_hash", "Image hash is not a valid SHA-256 digest."))
-    elif image_hash_registry is not None and image_hash_registry.contains(claim.image_sha256):
+    elif image_hash_registry is None:
+        checks.append(CheckResult("image_uniqueness", False, "cannot_check_image_uniqueness", "Screenshot reuse cannot be checked without an image hash registry."))
+    elif image_hash_registry.contains(claim.image_sha256):
         checks.append(CheckResult("image_uniqueness", False, "duplicate_image", "Screenshot image was already submitted."))
     else:
         checks.append(CheckResult("image_uniqueness", True, "unique_image", "Screenshot image hash is not already recorded."))
