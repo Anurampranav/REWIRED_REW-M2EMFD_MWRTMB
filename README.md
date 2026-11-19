@@ -167,3 +167,15 @@ hackathon sponsor requirements separately. Both commands report missing keys, qu
 responses, malformed output, failed jobs and timeouts without printing secrets.
 Live provider access is unconfirmed until these commands are run with valid keys
 and a synthetic or masked screenshot. CI uses mocked HTTP only.
+
+
+## Four-month synthetic demo
+
+Start the backend with a fresh demo database, then load the four-month fixture from a foreman session:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/demo/load -ContentType "application/json" -Body '{"actor":"foreman"}'
+python scripts/run_demo_scenarios.py
+```
+
+The loader seeds synthetic members, payment claims, independent bank evidence, and audit events. It never clears existing records; loading requires an empty demo database and subsequent loads are safe no-ops. The foreman dashboard also has a **Load demo** button. No real bank transfer is made.
