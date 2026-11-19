@@ -27,6 +27,11 @@ An image is a claim, not proof. `verified` requires matching independent bank
 evidence and all checks. Not found, low confidence or reader disagreement means
 `needs_review`; duplicate and wrong amount are distinct results. A manual
 approval must remain auditable and distinguishable from bank verification.
+T15 keeps the detailed OCR/check classification record in backend audit handling;
+the public message response remains a `result_card` so both frontends consume
+one shared contract. A result is `verified` only after a sufficiently confident
+claim passes every deterministic check and matches independent settled bank
+evidence. OCR confidence alone never proves payment.
 Use member IDs as `sender`, and `foreman` for the foreman. Message bubbles are
 returned only to that sender; review requests are retrieved through the foreman
 state flag queue. An invalid UTR is represented as null in the result card and
