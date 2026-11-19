@@ -17,8 +17,30 @@ On macOS/Linux use `.venv/bin/python` in place of `.\.venv\Scripts\python`.
 Open http://127.0.0.1:8000/chat/ and http://127.0.0.1:8000/dashboard/.
 API docs: http://127.0.0.1:8000/docs. No Node build step is required.
 
-Both pages call the backend directly. Each owns its `config.js`; set
-`window.CHITMIRROR_API_BASE` to switch its backend URL (empty means same origin).
+Both pages call the backend directly. Set `CHITMIRROR_API_BASE` when starting
+the frontend server to select the backend URL (empty means same origin).
+The shared API contract and examples are in `contracts/`. A separate canned
+stub is available for UI work; it does not perform payment verification.
+Separate origins require backend CORS configuration.
+
+## Stub API
+
+Start the stub with `python -m uvicorn backend.stub:app --port 8001`.
+Start the frontend server with `CHITMIRROR_API_BASE` set to the desired backend
+URL (empty selects the same origin). For example, in PowerShell:
+
+```powershell
+$env:CHITMIRROR_API_BASE = "http://127.0.0.1:8001"
+.\.venv\Scripts\python -m uvicorn backend.main:app --reload
+```
+
+The stub permits the local frontend origins on port 8000; set its
+`CHITMIRROR_ALLOWED_ORIGINS` to a comma-separated list for other origins. For
+canned message results, send `stub:verified`, `stub:duplicate`,
+`stub:wrong_amount`, `stub:needs_review`, `stub:review_request`, or
+`stub:reminder` in the multipart text field. Other messages return a text bubble.
+Responses use the shared synthetic fixtures in `data/fixtures/`. The stub
+does not persist state, actually send reminders, reset data, or verify screenshots.
 The backend exposes `/health`, `/state`, and `/reminders/send`; other business
 endpoints remain separate work. The shared API contract is in `contracts/`.
 Separate origins require backend CORS configuration.

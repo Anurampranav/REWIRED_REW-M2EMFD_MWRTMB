@@ -5,11 +5,14 @@ from contextlib import asynccontextmanager, suppress
 import logging
 import os
 from pathlib import Path
+import json
+import os
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict
 
 from backend.database import connect
@@ -65,6 +68,12 @@ async def invalid_request(request: Request, exc: RequestValidationError):
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/config.js")
+def frontend_config():
+    api_base = os.environ.get("CHITMIRROR_API_BASE", "")
+    return Response(f"window.CHITMIRROR_API_BASE = {json.dumps(api_base)};", media_type="application/javascript", headers={"Cache-Control": "no-store"})
 
 
 @app.post("/reminders/send")
