@@ -1,0 +1,91 @@
+{
+  "message_response": [
+    {
+      "bubbles": [
+        {
+          "type": "text",
+          "text": "Synthetic payment claim received for checking."
+        },
+        {
+          "type": "result_card",
+          "status": "verified",
+          "amount_paise": 445000,
+          "utr": "030000000001",
+          "reason": "Independent synthetic bank evidence matched."
+        },
+        {
+          "type": "result_card",
+          "status": "duplicate",
+          "amount_paise": 445000,
+          "utr": "030000000001",
+          "reason": "Synthetic UTR was already used."
+        },
+        {
+          "type": "result_card",
+          "status": "wrong_amount",
+          "amount_paise": 444900,
+          "utr": "030000000019",
+          "reason": "Expected 445000 paise."
+        },
+        {
+          "type": "result_card",
+          "status": "needs_review",
+          "amount_paise": 445000,
+          "utr": null,
+          "reason": "No independent synthetic bank evidence matches this screenshot claim."
+        },
+        {
+          "type": "review_request",
+          "item_id": "review-month-03-member-20",
+          "reason": "Independent evidence is missing."
+        },
+        {
+          "type": "reminder",
+          "text": "Synthetic reminder: your month 4 instalment is due."
+        }
+      ]
+    }
+  ],
+  "review_request": [
+    {
+      "item_id": "review-month-03-member-20",
+      "decision": "reject",
+      "reason": "Independent evidence was not available.",
+      "actor": "foreman"
+    }
+  ],
+  "review_response": [
+    {
+      "item_id": "review-month-03-member-20",
+      "decision": "reject"
+    }
+  ],
+  "reminders_request": [
+    {
+      "actor": "foreman"
+    }
+  ],
+  "reminders_response": [
+    {
+      "sent": 3
+    }
+  ],
+  "demo_load_request": [
+    {
+      "actor": "foreman"
+    }
+  ],
+  "demo_load_response": [
+    {
+      "loaded": true
+    }
+  ],
+  "error_response": [
+    {
+      "error": {
+        "code": "synthetic_validation_error",
+        "message": "Synthetic fixture only."
+      }
+    }
+  ]
+}
