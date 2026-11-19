@@ -1,0 +1,14 @@
+{
+  "fixture_version": 1,
+  "synthetic": true,
+  "image_files_included": false,
+  "note": "Each screenshot_fixture_id names a synthetic screenshot claim in scenarios.json. No actual payment images or personal information are included.",
+  "screenshots": [
+    {"id":"receipt-genuine-on-time","scenario_id":"genuine_on_time","expected_status":"verified"},
+    {"id":"receipt-reused-utr","scenario_id":"reused_utr","expected_status":"duplicate"},
+    {"id":"receipt-fake-utr","scenario_id":"fake_utr_not_in_csv","expected_status":"needs_review"},
+    {"id":"receipt-wrong-amount","scenario_id":"wrong_amount","expected_status":"wrong_amount"},
+    {"id":"receipt-late-payer","scenario_id":"late_payer","expected_status":"verified","timing":"late"}
+  ]
+}
+

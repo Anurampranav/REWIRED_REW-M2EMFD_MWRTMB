@@ -59,6 +59,16 @@ a verified payment or unlock payout. The review reason is captured in the audit
 log. Review API routing and authentication are separate work; the `foreman`
 actor string is a demo selector, not proof of identity.
 
+`backend.late_fee` assesses bank credit timestamps against the end of the due
+date in India time (UTC+05:30). The caller must supply the independently checked,
+offset-aware bank credit time and the untagged base due; screenshot timestamps
+are not inputs. Percentage fees use basis points of that base and reject
+fractional paise. A nonzero fee may be recorded once only after a verified
+payment is posted; its evidence timestamp and base are included in the audit
+reason. The service trusts its caller to provide genuine bank evidence and does
+not itself validate the bank CSV. A fee recorded after payment is a separate
+ledger charge; collection and reconciliation of that charge remain future work.
+
 ## Tests
 
 ```powershell
