@@ -5,14 +5,17 @@ from contextlib import asynccontextmanager, suppress
 import logging
 import os
 from pathlib import Path
+import json
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict
 
 from backend.database import connect
+from backend.demo import load_demo
 from backend.reminders import send_reminders
 from backend.state import get_state
 from backend.provider_smoke import ProviderSmokeError
@@ -60,6 +63,11 @@ class ReminderRequest(BaseModel):
     actor: str
 
 
+class DemoLoadRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    actor: str
+
+
 @app.exception_handler(RequestValidationError)
 async def invalid_request(request: Request, exc: RequestValidationError):
     return JSONResponse(status_code=422, content={"error": {"code": "invalid_request", "message": "Invalid request."}})
@@ -68,6 +76,12 @@ async def invalid_request(request: Request, exc: RequestValidationError):
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/config.js")
+def frontend_config():
+    api_base = os.environ.get("CHITMIRROR_API_BASE", "")
+    return Response(f"window.CHITMIRROR_API_BASE = {json.dumps(api_base)};", media_type="application/javascript", headers={"Cache-Control": "no-store"})
 
 
 @app.post("/reminders/send")
@@ -95,6 +109,20 @@ async def message(sender: str = Form(...), text: str = Form(""), image: UploadFi
         return needs_review_response(claim)
     except ProviderSmokeError as exc:
         return JSONResponse(status_code=422, content={"error": {"code": "screenshot_reader_error", "message": str(exc)}})
+
+
+@app.post("/demo/load")
+def demo_load(payload: DemoLoadRequest):
+    if payload.actor != "foreman":
+        return JSONResponse(status_code=422, content={"error": {"code": "invalid_request", "message": "Foreman required."}})
+    db, context = connect(database_path())
+    try:
+        try:
+            return load_demo(db, context, actor=payload.actor)
+        except ValueError as exc:
+            return JSONResponse(status_code=409, content={"error": {"code": "demo_load_conflict", "message": str(exc)}})
+    finally:
+        db.close()
 
 
 @app.get("/state")

@@ -81,7 +81,8 @@ def test_ten_synthetic_screenshots_are_submitted_as_unverified_claims(monkeypatc
     assert all(claim.utr is None and claim.amount_paise is None for claim in claims)
 
 
-def test_message_endpoint_never_exposes_raw_ocr_or_marks_a_screenshot_verified(monkeypatch):
+def test_message_endpoint_never_exposes_raw_ocr_or_marks_a_screenshot_verified(monkeypatch, tmp_path):
+    monkeypatch.setenv("CHITMIRROR_DATABASE", str(tmp_path / "reader-test.db"))
     monkeypatch.setattr("backend.main.read_uploaded_screenshot", lambda *_: __import__("backend.screenshot_reader", fromlist=["ScreenshotClaim"]).ScreenshotClaim(
         "123456789012", 450000, "demo@upi", "completed", None, None, "GPay", None
     ))
