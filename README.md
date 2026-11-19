@@ -129,17 +129,18 @@ masked PNG/JPG payment screenshot, print an unverified field claim plus response
 time, and fail if the call takes 10 seconds or more. They never write a payment,
 call a bank or WhatsApp, or mark a screenshot `verified`.
 
-Set `SARVAM_API_KEY` and `ANTHROPIC_API_KEY` in your local environment (or a
+Set `SARVAM_API_KEY` and `GROQ_API_KEY` in your local environment (or a
 local, ignored `.env` loaded by your shell), then run:
 
 ```powershell
 python -m scripts.smoke_sarvam --image .\path\to\synthetic-upi.png
-python -m scripts.smoke_claude --image .\path\to\synthetic-upi.png
+python -m scripts.smoke_groq --image .\path\to\synthetic-upi.png
 ```
 
 Sarvam uses its Document AI `POST /doc-ai/v1/job/parse` workflow, status polling,
-and the documented ZIP download URL. Claude uses `POST /v1/messages` with a
-base64 PNG/JPEG image block. Both commands report missing keys, quota/rate-limit
+and the documented ZIP download URL. Groq uses its vision chat completions API
+with a base64 PNG/JPEG image. Groq replaces Claude at the user's request; check
+hackathon sponsor requirements separately. Both commands report missing keys, quota/rate-limit
 responses, malformed output, failed jobs and timeouts without printing secrets.
 Live provider access is unconfirmed until these commands are run with valid keys
 and a synthetic or masked screenshot. CI uses mocked HTTP only.
